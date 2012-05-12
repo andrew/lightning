@@ -21,11 +21,13 @@ class TimerView < UIView
   end
 
   def touchesEnded(touches, withEvent:event)
-    if @timer
+    if @duration < 0.1
+      @duration = default_time 
+      setNeedsDisplay
+    elsif @timer
       @timer.invalidate
       @timer = nil
     else
-      @duration = default_time if @duration < 0.1
       @timer = NSTimer.scheduledTimerWithTimeInterval(0.1, target:self, selector:'timerFired', userInfo:nil, repeats:true)
     end
   end
