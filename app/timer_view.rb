@@ -1,5 +1,6 @@
 class TimerView < UIView
   def drawRect(rect)
+    @paused = true if @paused.nil?
     @duration ||= default_time
     percentage = 1 - (@duration/default_time)
 
@@ -8,7 +9,7 @@ class TimerView < UIView
 
     font_size = rect.size.width/3
     font = UIFont.boldSystemFontOfSize(font_size)
-    UIColor.whiteColor.set
+    UIColor.colorWithRed(1, green:1, blue:1, alpha:(@paused ? 0.3 : 1.0)).set
 
     text = Time.at(@duration).gmtime.strftime('%M:%S')
     constrain = CGSize.new(rect.size.width, rect.size.height)
@@ -22,14 +23,17 @@ class TimerView < UIView
 
   def touchesEnded(touches, withEvent:event)
     if @duration < 0.1
-      @duration = default_time 
-      setNeedsDisplay
+      @duration = default_time
+      @paused = true
     elsif @timer
+      @paused = true
       @timer.invalidate
       @timer = nil
     else
+      @paused = false
       @timer = NSTimer.scheduledTimerWithTimeInterval(0.1, target:self, selector:'timerFired', userInfo:nil, repeats:true)
     end
+    setNeedsDisplay
   end
 
   def default_time
