@@ -1,7 +1,21 @@
 class TimerView < UIView
+  def initWithFrame(ect)
+    if super
+      path = NSBundle.mainBundle.pathForResource('buzzer', ofType:'wav')
+      url = NSURL.fileURLWithPath(path)
+      error_ptr = Pointer.new(:id)
+      @buzzerSound = AVAudioPlayer.alloc.initWithContentsOfURL(url,
+        error:error_ptr)
+      unless @buzzerSound
+        raise "Can't open sound file: #{error_ptr[0].description}"
+      end
+      @paused = true
+      @duration = default_time
+    end
+    self
+  end
+
   def drawRect(rect)
-    @paused = true if @paused.nil?
-    @duration ||= default_time
     percentage = 1 - (@duration/default_time)
 
     UIColor.colorWithRed(percentage, green:0, blue:0, alpha:1.0).set
@@ -23,13 +37,10 @@ class TimerView < UIView
 
   def touchesEnded(touches, withEvent:event)
     touch = event.touchesForView(self).anyObject
-    if @duration < 0.1 || touch.tapCount > 1
-      @duration = default_time
+    if @timer || @duration < 0.1 || touch.tapCount > 1
+      @duration = default_time if @duration < 0.1 || touch.tapCount > 1
       @paused = true
-    elsif @timer
-      @paused = true
-      @timer.invalidate
-      @timer = nil
+      removeTimer
     else
       @paused = false
       @timer = NSTimer.scheduledTimerWithTimeInterval(0.1, target:self, selector:'timerFired', userInfo:nil, repeats:true)
@@ -40,11 +51,16 @@ class TimerView < UIView
   def default_time
     5*60.0
   end
+  
+  def removeTimer
+    @timer.invalidate unless @timer.nil?
+    @timer = nil
+  end
 
   def timerFired
     if @duration < 0.1
-      @timer.invalidate
-      @timer = nil
+      removeTimer
+      @buzzerSound.play
     else
       @duration -= 0.1
     end
