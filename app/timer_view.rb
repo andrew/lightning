@@ -22,7 +22,8 @@ class TimerView < UIView
   end
 
   def touchesEnded(touches, withEvent:event)
-    if @duration < 0.1
+    touch = event.touchesForView(self).anyObject
+    if @duration < 0.1 || touch.tapCount > 1
       @duration = default_time
       @paused = true
     elsif @timer
