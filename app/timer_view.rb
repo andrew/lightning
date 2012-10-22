@@ -51,7 +51,7 @@ class TimerView < UIView
   def default_time
     5*60.0
   end
-  
+
   def removeTimer
     @timer.invalidate unless @timer.nil?
     @timer = nil
