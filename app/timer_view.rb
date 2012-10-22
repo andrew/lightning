@@ -1,14 +1,6 @@
 class TimerView < UIView
   def initWithFrame(ect)
     if super
-      path = NSBundle.mainBundle.pathForResource('buzzer', ofType:'wav')
-      url = NSURL.fileURLWithPath(path)
-      error_ptr = Pointer.new(:id)
-      @buzzerSound = AVAudioPlayer.alloc.initWithContentsOfURL(url,
-        error:error_ptr)
-      unless @buzzerSound
-        raise "Can't open sound file: #{error_ptr[0].description}"
-      end
       @paused = true
       @duration = default_time
     end
@@ -60,10 +52,14 @@ class TimerView < UIView
   def timerFired
     if @duration < 0.1
       removeTimer
-      @buzzerSound.play
+      play_buzzer
     else
       @duration -= 0.1
     end
     setNeedsDisplay
+  end
+
+  def play_buzzer
+    BW::Media.play(NSURL.fileURLWithPath(File.join(NSBundle.mainBundle.resourcePath, 'buzzer.wav'))) {}
   end
 end
